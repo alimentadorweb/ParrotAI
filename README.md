@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="ParrotAI/assets/logo_parrotAI.png" alt="ParrotAI logo" width="280"/>
+<img src="assets/logo_parrotAI.png" alt="ParrotAI logo" width="280"/>
 
 # ParrotAI-1.1B
 English | [Español](#español)
