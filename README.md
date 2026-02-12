@@ -1,7 +1,9 @@
 <div align="center">
 
+<img src="ParrotAI/assets/logo_parrotAI.png" alt="ParrotAI logo" width="280"/>
+
 # ParrotAI-1.1B
-English
+English | [Español](#español)
 
 </div>
 
@@ -74,3 +76,76 @@ This repository is built upon [lit-gpt](https://github.com/Lightning-AI/lit-gpt)
 
 ## Fork Notice
 This repository is a fork of **TinyLlama**. All original credit belongs to the TinyLlama authors and contributors, and usage remains subject to the original licenses and attributions.
+
+---
+
+## Español
+
+ParrotAI es un modelo de lenguaje de la familia Llama, compacto, de **1.1B parámetros**, diseñado para ejecutarse eficientemente en hardware con recursos limitados. Sigue el estilo de **arquitectura y tokenizador de Llama 2**, por lo que es compatible con muchas herramientas y proyectos open source del ecosistema Llama.
+
+ParrotAI fue forkeado para servir a **Synapta OS** como **modelo base** de un sistema operativo orientado a la educación que permite a **escuelas rurales** usar **inteligencia artificial sin acceso a internet**. El proyecto se publica bajo licencia **Apache 2.0**, consistente con el proyecto original TinyLlama.
+
+ParrotAI está pensado para mantener una huella pequeña de memoria sin perder utilidad en tareas típicas de NLP y de asistentes. Su tamaño lo hace práctico para despliegues donde el cómputo y la RAM son limitados.
+
+## Casos de uso potenciales
+Los modelos pequeños pero capaces son útiles en muchos escenarios. Algunos casos de uso:
+- Apoyar *speculative decoding* de modelos más grandes.
+- Despliegue en dispositivos con memoria y cómputo restringidos, incluyendo escenarios **sin conexión a internet** (por ejemplo, pesos cuantizados a 4-bit en el orden de cientos de MB).
+- Generación de diálogo en tiempo real para aplicaciones como videojuegos o asistentes locales.
+
+Además, este código puede servir como **referencia para entusiastas que desean preentrenar modelos menores a 5B parámetros** sin entrar demasiado pronto en *stacks* de entrenamiento distribuido más complejos.
+
+## Detalles del modelo y entrenamiento
+
+| Parámetro                        | Descripción                                                   |
+|----------------------------------|---------------------------------------------------------------|
+| Parámetros                       | 1.1B                                                          |
+| Variante de atención             | Grouped Query Attention                                       |
+| Tamaño del modelo                | Capas: 22, Heads: 32, Query Groups: 4, Embedding: 2048, Intermedio (Swiglu): 5632 |
+| Longitud de secuencia            | 2048                                                          |
+| Batch size                       | 2 millones de tokens (2048 * 1024)                            |
+| Learning rate                    | 4e-4                                                          |
+| Schedule de learning rate        | Coseno con 2000 pasos de warmup                               |
+| Datos de entrenamiento           | Slimpajama & Starcoderdata                                    |
+| Preprocesamiento                 | Excluye subset GitHub de Slimpajama; muestrea código de Starcoderdata |
+| Tamaño combinado del dataset     | ~950B tokens                                                  |
+| Tokens totales en entrenamiento  | 3 trillion                                                    |
+| Ratio lenguaje natural:código    | 7:3                                                           |
+| Hardware                         | 16 A100-40G GPUs                                              |
+
+## Rendimiento y eficiencia
+
+### Throughput de entrenamiento (referencia)
+Con optimizaciones comunes (ver abajo), el *throughput* puede llegar al orden de **~24k tokens/seg por A100-40G**, con buena utilización sin *activation checkpointing* (y típicamente mayor en A100 con más memoria).
+
+### Throughput de inferencia (referencia)
+Ejemplos de *throughput* para esta clase de modelo:
+
+| Framework | Dispositivo | Ajustes | Throughput (tokens/seg) |
+|----------|-------------|---------|--------------------------|
+| Llama.cpp | Mac M2 16GB RAM | batch_size=1; inferencia 4-bit | ~71.8 |
+| vLLM      | A40 GPU | batch_size=100, n=10 | ~7094.5 |
+
+## Muy rápido
+Este codebase soporta características de alto rendimiento:
+- entrenamiento distribuido multi-GPU y multi-nodo con FSDP
+- flash attention 2
+- fused layernorm
+- fused swiglu
+- fused cross entropy loss
+- fused rotary positional embedding
+
+Créditos: flash attention 2, fused layernorm, fused cross entropy loss y fused rotary positional embedding provienen del repositorio FlashAttention. Fused swiglu proviene de xformers.
+
+## Preentrenamiento
+Ver [PRETRAIN.md](PRETRAIN.md) para instrucciones sobre cómo preentrenar ParrotAI.
+
+## Fine-tuning
+Incluimos un script simple de fine-tuning completo e inferencia en [sft](sft).  
+Para fine-tuning con menos de 4GB de RAM, considerar QLoRA y bitsandbytes.
+
+## Agradecimientos
+Este repositorio se basa en [lit-gpt](https://github.com/Lightning-AI/lit-gpt) y [flash-attention](https://github.com/Dao-AILab/flash-attention).
+
+## Aviso de fork
+Este repositorio es un fork de **TinyLlama**. Todo el crédito original corresponde a los autores y contribuidores de TinyLlama, y su uso está sujeto a las licencias y atribuciones originales.
